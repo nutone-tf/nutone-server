@@ -1,0 +1,26 @@
+{
+    "Name": "fvnkhead.killstat",
+    "Description": "gather kill statistics",
+    "Version": "2.0.0",
+    "LoadPriority": 1,
+    "RequiredOnClient": false,
+    "ConVars": [
+        {
+            "Name": "killstat_version",
+            "DefaultValue": "ks_2.0.0"
+        },
+        {
+            "Name": "killstat_custom_parameters",
+            "DefaultValue": ""
+        }
+    ],
+    "Scripts": [
+        {
+            "Path": "killstat.nut",
+            "RunOn": "SERVER",
+            "ServerCallback": {
+                "After": "killstat_Init"
+            }
+        }
+    ]
+}
