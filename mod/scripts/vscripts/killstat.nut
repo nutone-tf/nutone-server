@@ -46,7 +46,9 @@ array<string> HEADERS = [ //unused
 struct {
     string killstatVersion
     string Tone_URI
-    int serverId
+    string Tone_protocol
+    string Tone_ID
+    string Tone_token
     array<Parameter> customParameters
 
     int matchId
@@ -57,8 +59,13 @@ struct {
 void function killstat_Init() {
     file.killstatVersion = GetConVarString("killstat_version")
     file.Tone_URI = GetConVarString("Tone_URI")
-    //TODO : request ServerID from API ------------------------------------------------------------------------------------------------
-    file.serverId = 1
+    file.Tone_protocol = GetConVarString("Tone_protocol")
+    file.Tone_ID = GetConVarString("Tone_ID")
+    file.Tone_token = GetConVarString("Tone_token")
+
+    //register to Tone API if default or invalid token
+    Tone_Test_Auth()
+
     // custom parameters
     string customParameterString = GetConVarString("killstat_custom_parameters")
     array<string> customParameterEntries = split(customParameterString, ",")
@@ -98,7 +105,7 @@ void function killstat_Begin() {
     file.map = StringReplace(GetMapName(), "mp_", "")
 
     Log("-----BEGIN KILLSTAT-----")
-    Log("Sending kill data to " + file.Tone_URI + "/servers/"+file.serverId+"/kill")
+    Log("Sending kill data to " + file.Tone_URI + "/servers/"+file.Tone_ID+"/kill")
 }
 
 void function killstat_Record(entity victim, entity attacker, var damageInfo) {
@@ -176,7 +183,7 @@ void function killstat_Record(entity victim, entity attacker, var damageInfo) {
 
     string json = EncodeJSON(values)
     print("sending here... I realise")
-    NSHttpPostBody(file.Tone_URI + "/servers/"+file.serverId+"/kill", json)
+    NSHttpPostBody(GetToneURIWithAuth()+ "/servers/"+file.Tone_ID+"/kill", json)
 }
 
 void function killstat_End() {
@@ -316,4 +323,69 @@ string function join(array<string> list, string separator) {
         }
 
     return s
+}
+
+
+void function Tone_Test_Auth(){
+    HttpRequest request
+    request.method = HttpRequestMethod.POST
+    request.url = GetToneURIWithAuth() + "/servers/"+file.Tone_ID
+    void functionref( HttpRequestResponse ) onSuccess = void function ( HttpRequestResponse response )
+    {
+        print("[Tone API] Tone API Online !")
+    }
+
+    void functionref( HttpRequestFailure ) onFailure = void function ( HttpRequestFailure failure )
+    {
+        print("[Tone API] Tone API registration failed")
+        print("[Tone API] " + failure.errorMessage )
+        thread Tone_Register_Threaded()
+    }
+
+    NSHttpRequest(request, onSuccess, onFailure)
+}
+
+
+void function Tone_Register_Threaded(){
+    table body = {}
+    body["name"] <- GetConVarString("ns_server_name")
+    body["description"] <- GetConVarString("ns_server_desc")
+    body["auth_port"] <- GetConVarString("ns_player_auth_port")
+    HttpRequest request
+    request.method = HttpRequestMethod.POST
+    request.url = file.Tone_protocol + "://" + file.Tone_URI+ "/servers/register"
+
+    string json = EncodeJSON( body )
+    request.body = json
+    int i = 0
+    void functionref( HttpRequestResponse ) onSuccess = void function ( HttpRequestResponse response )
+    {
+        table answer = DecodeJSON(response.body)
+        file.Tone_ID = expect string(answer["id"])
+        file.Tone_token = expect string(answer["token"])
+        SetConVarString("Tone_ID", expect string(answer["id"]))
+        SetConVarString("Tone_token", expect string(answer["token"]))
+        i = 5
+    }
+
+    void functionref( HttpRequestFailure ) onFailure = void function ( HttpRequestFailure failure )
+    {
+        print("[Tone API] Tone API registration failed")
+        print("[Tone API] "+ failure.errorMessage )
+    }
+
+
+    while(i < 5){
+        print("[Tone API] requesting Tone API for registration... Time " + i + " out of 5" )
+        NSHttpRequest( request, onSuccess, onFailure )
+        i = i + 1
+        wait 300
+    }
+
+    return
+}
+
+
+string function GetToneURIWithAuth(){
+    return file.Tone_protocol + "://" +file.Tone_ID+":"+file.Tone_protocol+"@"+ file.Tone_URI
 }

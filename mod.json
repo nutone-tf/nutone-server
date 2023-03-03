@@ -10,8 +10,22 @@
             "DefaultValue": "ks_3.0.0"
         },
         {
+            "Name": "Tone_protocol",
+            "DefaultValue": "http"
+        },
+        {
             "Name": "Tone_URI",
-            "DefaultValue": "http://127.0.0.1:3001/v1"
+            "DefaultValue": "127.0.0.1:3001/v1"
+        },
+        {
+            "Name": "Tone_ID",
+            "DefaultValue": "default",
+            "Flags": 128
+        },
+        {
+            "Name": "Tone_token",
+            "DefaultValue": "default",
+            "Flags": 4256
         },
         {
             "Name": "killstat_custom_parameters",
