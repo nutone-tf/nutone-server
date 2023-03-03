@@ -5,7 +5,7 @@ struct Parameter {
     string value
 }
 
-array<string> HEADERS = [
+array<string> HEADERS = [ //unused
     "killstat_version",
     "match_id",
     "game_mode",
@@ -45,8 +45,8 @@ array<string> HEADERS = [
 
 struct {
     string killstatVersion
-
-    array<string> headers
+    string Tone_URI
+    int serverId
     array<Parameter> customParameters
 
     int matchId
@@ -56,8 +56,9 @@ struct {
 
 void function killstat_Init() {
     file.killstatVersion = GetConVarString("killstat_version")
-    file.headers = HEADERS
-
+    file.Tone_URI = GetConVarString("Tone_URI")
+    //TODO : request ServerID from API ------------------------------------------------------------------------------------------------
+    file.serverId = 1
     // custom parameters
     string customParameterString = GetConVarString("killstat_custom_parameters")
     array<string> customParameterEntries = split(customParameterString, ",")
@@ -90,33 +91,24 @@ Parameter function NewParameter(string name, string value) {
 
 void function killstat_Begin() {
     //DumpWeaponModBitFields()
-
+    //TODO : request MatchID from API ------------------------------------------------------------------------------------------------
+    //TODO : request anonymization data from API
     file.matchId = RandomInt(2000000000)
     file.gameMode = GameRules_GetGameMode()
     file.map = StringReplace(GetMapName(), "mp_", "")
 
-    array<string> headers = []
-    foreach (Parameter p in file.customParameters) {
-        headers.append(p.name)
-    }
-    foreach (string s in file.headers) {
-        headers.append(s)
-    }
-
-    string headerRow = ToCsvRow(headers)
-
     Log("-----BEGIN KILLSTAT-----")
-    Log("[HEADERS] " + headerRow)
+    Log("Sending kill data to " + file.Tone_URI + "/servers/"+file.serverId+"/kill")
 }
 
 void function killstat_Record(entity victim, entity attacker, var damageInfo) {
     if ( !victim.IsPlayer() || !attacker.IsPlayer() || GetGameState() != eGameState.Playing )
             return
 
-    array<string> values = []
+    table values = {}
 
     foreach (Parameter p in file.customParameters) {
-        values.append(p.value)
+        values[p] <- p.value
     }
 
     array<entity> attackerWeapons = attacker.GetMainWeapons()
@@ -141,166 +133,54 @@ void function killstat_Record(entity victim, entity attacker, var damageInfo) {
     entity vow3 = GetNthWeapon(victimOffhandWeapons, 2)
 
 
-    foreach (string header in file.headers) {
-        switch (header) {
-            case "killstat_version":
-                values.append(file.killstatVersion)
-                break
+    values["killstat_version"] <- file.killstatVersion
+    values["match_id"] <- format("%08x", file.matchId)
+    values["game_mode"] <- file.gameMode
+    values["map"] <- file.map
+    values["game_time"] <- format("%.3f", Time())
+    values["player_count"] <- format("%d", GetPlayerArray().len())
+    values["attacker_name"] <- attacker.GetPlayerName()
+    values["attacker_id"] <- attacker.GetUID()
+    values["attacker_current_weapon"] <- GetWeaponName(attacker.GetLatestPrimaryWeapon())
+    values["attacker_current_weapon_mods"] <- GetWeaponMods(attacker.GetLatestPrimaryWeapon())
+    values["attacker_weapon_1"] <- GetWeaponName(aw1)
+    values["attacker_weapon_1_mods"] <- GetWeaponMods(aw1)
+    values["attacker_weapon_2"] <- GetWeaponName(aw2)
+    values["attacker_weapon_2_mods"] <- GetWeaponMods(aw2)
+    values["attacker_weapon_3"] <- GetWeaponName(aw3)
+    values["attacker_weapon_3_mods"] <- GetWeaponMods(aw3)
+    values["attacker_offhand_weapon_1"] <- GetWeaponMods(aow1)
+    values["attacker_offhand_weapon_2"] <- GetWeaponMods(aow2)
+    values["attacker_offhand_weapon_3"] <- GetWeaponMods(aow3)
 
-            case "match_id":
-                values.append(format("%08x", file.matchId))
-                break
+    values["victim_name"] <- victim.GetPlayerName()
+    values["victim_id"] <- victim.GetUID()
+    values["victim_current_weapon"] <- GetWeaponName(victim.GetLatestPrimaryWeapon())
+    values["victim_current_weapon_mods"] <- GetWeaponMods(victim.GetLatestPrimaryWeapon())
+    values["victim_weapon_1"] <-  GetWeaponName(vw1)
+    values["victim_weapon_1_mods"] <- GetWeaponMods(vw1)
+    values["victim_weapon_2"] <- GetWeaponName(vw2)
+    values["victim_weapon_2_mods"] <- GetWeaponMods(vw2)
+    values["victim_weapon_3"] <- GetWeaponName(vw3)
+    values["victim_weapon_3_mods"] <- GetWeaponMods(vw3)
+    values["victim_offhand_weapon_1"] <- GetWeaponMods(vow1)
+    values["victim_offhand_weapon_2"] <- GetWeaponMods(vow2)
+    values["victim_offhand_weapon_3"] <- GetWeaponMods(vow3)
 
-            case "game_mode":
-                values.append(file.gameMode)
-                break
+    int damageSourceId = DamageInfo_GetDamageSourceIdentifier(damageInfo)
+    string damageName = DamageSourceIDToString(damageSourceId)
+    values["cause_of_death"] <- TrimWeaponName(damageName)
 
-            case "map":
-                values.append(file.map)
-                break
+    float dist = Distance(attacker.GetOrigin(), victim.GetOrigin())
+    values["distance"] <- format("%.3f", dist)
 
-            case "unix_time":
-                values.append(format("%d", GetUnixTimestamp()))
-                break
-
-            case "game_time":
-                values.append(format("%.3f", Time()))
-                break
-
-            case "player_count":
-                values.append(format("%d", GetPlayerArray().len()))
-                break
-
-            case "attacker_name":
-                values.append(attacker.GetPlayerName())
-                break
-
-            case "attacker_id":
-                values.append(Anonymize(attacker))
-                break
-
-            case "attacker_current_weapon":
-                AddWeapon(values, attacker.GetLatestPrimaryWeapon())
-                break
-
-            case "attacker_current_weapon_mods":
-                AddWeaponMods(values, attacker.GetLatestPrimaryWeapon())
-                break
-
-            case "attacker_weapon_1":
-                AddWeapon(values, aw1)
-                break
-
-            case "attacker_weapon_1_mods":
-                AddWeaponMods(values, aw1)
-                break
-            
-            case "attacker_weapon_2":
-                AddWeapon(values, aw2)
-                break
-
-            case "attacker_weapon_2_mods":
-                AddWeaponMods(values, aw2)
-                break
-
-            case "attacker_weapon_3":
-                AddWeapon(values, aw3)
-                break
-
-            case "attacker_weapon_3_mods":
-                AddWeaponMods(values, aw3)
-                break
-
-            case "attacker_offhand_weapon_1":
-                AddWeapon(values, aow1)
-                break
-
-            case "attacker_offhand_weapon_2":
-                AddWeapon(values, aow2)
-                break
-
-            case "attacker_offhand_weapon_3":
-                AddWeapon(values, aow3)
-                break
-                
-            case "victim_name":
-                values.append(victim.GetPlayerName())
-                break
-
-            case "victim_id":
-                values.append(Anonymize(victim))
-                break
-
-            case "victim_current_weapon":
-                AddWeapon(values, victim.GetLatestPrimaryWeapon())
-                break
-
-            case "victim_current_weapon_mods":
-                AddWeaponMods(values, victim.GetLatestPrimaryWeapon())
-                break
-
-            case "victim_weapon_1":
-                AddWeapon(values, vw1)
-                break
-
-            case "victim_weapon_1_mods":
-                AddWeaponMods(values, vw1)
-                break
-
-            case "victim_weapon_2":
-                AddWeapon(values, vw2)
-                break
-
-            case "victim_weapon_2_mods":
-                AddWeaponMods(values, vw2)
-                break
-
-                case "victim_weapon_3":
-                AddWeapon(values, vw3)
-                break
-
-            case "victim_weapon_3_mods":
-                AddWeaponMods(values, vw3)
-                break
-
-            case "victim_offhand_weapon_1":
-                AddWeapon(values, vow1)
-                break
-
-            case "victim_offhand_weapon_2":
-                AddWeapon(values, vow2)
-                break
-
-            case "victim_offhand_weapon_3":
-                AddWeapon(values, vow3)
-                break
-
-            case "cause_of_death":
-                int damageSourceId = DamageInfo_GetDamageSourceIdentifier(damageInfo)
-                string damageName = DamageSourceIDToString(damageSourceId)
-                values.append(TrimWeaponName(damageName))
-                break
-
-            case "distance":
-                float dist = Distance(attacker.GetOrigin(), victim.GetOrigin())
-                values.append(format("%.3f", dist))
-                break
-
-            default:
-                break
-        }
-    }
-
-    string row = ToCsvRow(values)
-    Log("[ROW] " + row)
+    string json = EncodeJSON(values)
+    print("sending here... I realise")
+    NSHttpPostBody(file.Tone_URI + "/servers/"+file.serverId+"/kill", json)
 }
 
 void function killstat_End() {
     Log("-----END KILLSTAT-----")
-}
-
-void function Log(string s) {
-     print("[fvnkhead.killstat] " + s)
 }
 
 array<int> MAIN_DAMAGE_SOURCES = [
@@ -386,13 +266,20 @@ entity function GetNthWeapon(array<entity> weapons, int index) {
     return index < weapons.len() ? weapons[index] : null
 }
 
-void function AddWeapon(array<string> list, entity weapon) {
+string function GetWeaponName(entity weapon) {
     string s = "null"
     if (weapon != null) {
         s = TrimWeaponName(weapon.GetWeaponClassName())
     }
+    return s
+}
 
-    list.append(s)
+string function GetWeaponMods(entity weapon) {
+    if (weapon == null) {
+        return "null"
+    }
+    int modBits = weapon.GetModBitField()
+    return format("%d", modBits)
 }
 
 string function TrimWeaponName(string s) {
@@ -402,15 +289,10 @@ string function TrimWeaponName(string s) {
     return s
 }
 
-void function AddWeaponMods(array<string> list, entity weapon) {
-    if (weapon == null) {
-        list.append("null")
-        return
-    }
-
-    int modBits = weapon.GetModBitField()
-    list.append(format("%d", modBits))
+string function Anonymize(entity player) {
+    return "null" // unused
 }
+
 
 string function ToPythonList(array<string> list) {
     array<string> quoted = []
@@ -421,14 +303,9 @@ string function ToPythonList(array<string> list) {
     return "\"[" + join(quoted, ", ") + "]\""
 }
 
-string function Anonymize(entity player) {
-    return "null" // unused
+void function Log(string s) {
+    print("[fvnkhead.killstat] " + s)
 }
-
-string function ToCsvRow(array<string> list) {
-    return join(list, ",")
-}
-
 string function join(array<string> list, string separator) {
     string s = ""
         for (int i = 0; i < list.len(); i++) {

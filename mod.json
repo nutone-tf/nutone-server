@@ -1,13 +1,17 @@
 {
-    "Name": "fvnkhead.killstat",
-    "Description": "gather kill statistics",
-    "Version": "2.0.0",
+    "Name": " fvnkhead.killstat",
+    "Description": "Gather kill statistics and sends them to Tone API server.",
+    "Version": "3.0.0",
     "LoadPriority": 1,
     "RequiredOnClient": false,
     "ConVars": [
         {
             "Name": "killstat_version",
-            "DefaultValue": "ks_2.0.0"
+            "DefaultValue": "ks_3.0.0"
+        },
+        {
+            "Name": "Tone_URI",
+            "DefaultValue": "http://127.0.0.1:3001/v1"
         },
         {
             "Name": "killstat_custom_parameters",
