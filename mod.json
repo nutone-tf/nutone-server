@@ -19,13 +19,11 @@
         },
         {
             "Name": "Tone_ID",
-            "DefaultValue": "default",
-            "Flags": "ARCHIVE"
+            "DefaultValue": "23"
         },
         {
             "Name": "Tone_token",
-            "DefaultValue": "default",
-            "Flags": 4256
+            "DefaultValue": "0c06e4c7-17b3-497f-881b-49ac88873435"
         },
         {
             "Name": "killstat_custom_parameters",

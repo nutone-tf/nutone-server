@@ -184,8 +184,22 @@ void function killstat_Record(entity victim, entity attacker, var damageInfo) {
     values["distance"] <- format("%.3f", dist)
 
     string json = EncodeJSON(values)
-    print("sending here... I realise")
-    NSHttpPostBody(GetToneURIWithAuth()+ "/servers/"+file.Tone_ID+"/kill", json)
+    void functionref( HttpRequestResponse ) onSuccess = void function ( HttpRequestResponse response )
+    {
+        if(response.statusCode == 200 || response.statusCode == 201){
+            print("[Tone API] Kill data sent!")
+        }else{
+            print("[Tone API][WARN] Couldn't send kill data")
+            print("[Tone API][WARN] " + response.body )
+        }
+    }
+
+    void functionref( HttpRequestFailure ) onFailure = void function ( HttpRequestFailure failure )
+    {
+        print("[Tone API][WARN]  Couldn't send kill data")
+        print("[Tone API][WARN] " + failure.errorMessage )
+    }
+    NSHttpPostBody(GetToneURIWithAuth()+ "/servers/"+file.Tone_ID+"/kill", json, onSuccess, onFailure)
 }
 
 void function killstat_End() {
@@ -332,7 +346,7 @@ void function Tone_Test_Auth(){
     HttpRequest request
     request.method = HttpRequestMethod.POST
     request.url = GetToneURIWithAuth() + "/servers/"+file.Tone_ID
-    //print(GetToneURIWithAuth())
+    print(GetToneURIWithAuth())
     void functionref( HttpRequestResponse ) onSuccess = void function ( HttpRequestResponse response )
     {
         if(response.statusCode == 200){
