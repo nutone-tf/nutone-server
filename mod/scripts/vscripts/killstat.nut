@@ -47,8 +47,9 @@ struct {
     string killstatVersion
     string Tone_URI
     string Tone_protocol
-    string Tone_ID
+    int Tone_ID
     string Tone_token
+    bool connected
     array<Parameter> customParameters
 
     int matchId
@@ -60,8 +61,9 @@ void function killstat_Init() {
     file.killstatVersion = GetConVarString("killstat_version")
     file.Tone_URI = GetConVarString("Tone_URI")
     file.Tone_protocol = GetConVarString("Tone_protocol")
-    file.Tone_ID = GetConVarString("Tone_ID")
+    file.Tone_ID = GetConVarInt("Tone_ID")
     file.Tone_token = GetConVarString("Tone_token")
+    file.connected = false
 
     //register to Tone API if default or invalid token
     Tone_Test_Auth()
@@ -330,9 +332,17 @@ void function Tone_Test_Auth(){
     HttpRequest request
     request.method = HttpRequestMethod.POST
     request.url = GetToneURIWithAuth() + "/servers/"+file.Tone_ID
+    //print(GetToneURIWithAuth())
     void functionref( HttpRequestResponse ) onSuccess = void function ( HttpRequestResponse response )
     {
-        print("[Tone API] Tone API Online !")
+        if(response.statusCode == 200){
+            print("[Tone API] Tone API Online !")
+            file.connected = true
+        }else{
+            print("[Tone API] Tone API registration failed")
+            print("[Tone API] " + response.body )
+            thread Tone_Register_Threaded()
+        }
     }
 
     void functionref( HttpRequestFailure ) onFailure = void function ( HttpRequestFailure failure )
@@ -360,12 +370,19 @@ void function Tone_Register_Threaded(){
     int i = 0
     void functionref( HttpRequestResponse ) onSuccess = void function ( HttpRequestResponse response )
     {
-        table answer = DecodeJSON(response.body)
-        file.Tone_ID = expect string(answer["id"])
-        file.Tone_token = expect string(answer["token"])
-        SetConVarString("Tone_ID", expect string(answer["id"]))
-        SetConVarString("Tone_token", expect string(answer["token"]))
-        i = 5
+        //print(response.statusCode)
+        if(response.statusCode == 201){
+            table answer = DecodeJSON(response.body)
+            file.Tone_ID = expect int(answer["id"])
+            file.Tone_token = expect string(answer["token"])
+            SetConVarInt("Tone_ID", (expect int(answer["id"])))
+            SetConVarString("Tone_token", (expect string(answer["token"])))
+            print("[Tone API] Tone API Online !")
+            file.connected = true
+        }else{
+            print("[Tone API] Tone API registration failed")
+            print("[Tone API] " + response.body )
+        }
     }
 
     void functionref( HttpRequestFailure ) onFailure = void function ( HttpRequestFailure failure )
@@ -374,18 +391,18 @@ void function Tone_Register_Threaded(){
         print("[Tone API] "+ failure.errorMessage )
     }
 
-
-    while(i < 5){
+    while(i < 5 && file.connected == false){
         print("[Tone API] requesting Tone API for registration... Time " + i + " out of 5" )
         NSHttpRequest( request, onSuccess, onFailure )
         i = i + 1
         wait 300
     }
+    print("[Tone API] Tone API registration failed. Stopping registration requests for now. Try mentionning @Legonzaur#2100 about this issue.")
 
     return
 }
 
 
 string function GetToneURIWithAuth(){
-    return file.Tone_protocol + "://" +file.Tone_ID+":"+file.Tone_protocol+"@"+ file.Tone_URI
+    return file.Tone_protocol + "://" +file.Tone_ID+":"+file.Tone_token+"@"+ file.Tone_URI
 }

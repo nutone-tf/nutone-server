@@ -20,7 +20,7 @@
         {
             "Name": "Tone_ID",
             "DefaultValue": "default",
-            "Flags": 128
+            "Flags": "ARCHIVE"
         },
         {
             "Name": "Tone_token",
