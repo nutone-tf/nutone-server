@@ -89,6 +89,7 @@ void function killstat_Init() {
     AddCallback_GameStateEnter(eGameState.Playing, killstat_Begin)
     AddCallback_OnPlayerKilled(killstat_Record)
     AddCallback_GameStateEnter(eGameState.Postmatch, killstat_End)
+    AddCallback_OnClientConnected(JoinMessage)
 }
 
 Parameter function NewParameter(string name, string value) {
@@ -96,6 +97,12 @@ Parameter function NewParameter(string name, string value) {
     p.name = name
     p.value = value
     return p
+}
+
+string prefix = "\x1b[38;5;81m[TONE API]\x1b[0m "
+
+void function JoinMessage(entity player) {
+    Chat_ServerPrivateMessage(player, prefix + "This server collects data using the Tone API. Check your data here: \x1b[34mtoneapi.com/" + player.GetPlayerName()+ "\x1b[0m", false, false)
 }
 
 void function killstat_Begin() {
