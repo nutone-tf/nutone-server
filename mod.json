@@ -11,19 +11,19 @@
         },
         {
             "Name": "Tone_protocol",
-            "DefaultValue": "http"
+            "DefaultValue": "https"
         },
         {
             "Name": "Tone_URI",
-            "DefaultValue": "127.0.0.1:3001/v1"
+            "DefaultValue": "tone.sleepycat.date/v1"
         },
         {
             "Name": "Tone_ID",
-            "DefaultValue": "23"
+            "DefaultValue": "1"
         },
         {
             "Name": "Tone_token",
-            "DefaultValue": "0c06e4c7-17b3-497f-881b-49ac88873435"
+            "DefaultValue": "pasteyourtokenhere"
         },
         {
             "Name": "killstat_custom_parameters",
