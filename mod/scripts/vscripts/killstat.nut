@@ -115,7 +115,7 @@ void function killstat_Begin() {
     file.map = StringReplace(GetMapName(), "mp_", "")
 
     Log("-----BEGIN KILLSTAT-----")
-    Log("Sending kill data to " + file.Tone_URI + "/servers/"+file.Tone_ID+"/kill")
+    Log("Sending kill data to " + file.Tone_protocol + "://" + file.Tone_URI + "/servers/"+file.Tone_ID+"/kill")
 }
 
 void function killstat_Record(entity victim, entity attacker, var damageInfo) {
@@ -354,7 +354,6 @@ void function Tone_Test_Auth(){
     HttpRequest request
     request.method = HttpRequestMethod.POST
     request.url = GetToneURIWithAuth() + "/servers/"+file.Tone_ID
-    print(GetToneURIWithAuth())
     void functionref( HttpRequestResponse ) onSuccess = void function ( HttpRequestResponse response )
     {
         if(response.statusCode == 200){
