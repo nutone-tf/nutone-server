@@ -103,7 +103,7 @@ string prefix = "\x1b[38;5;81m[TONE API]\x1b[0m "
 
 void function JoinMessage(entity player) {
     //Chat_ServerPrivateMessage(player, prefix + "This server collects data using the Tone API. Check your data here: \x1b[34mtoneapi.com/" + player.GetPlayerName()+ "\x1b[0m", false, false)
-    Chat_ServerPrivateMessage(player, prefix + "This server collects data using the WIP Tone API. A way to fetch your kill stats will come soon!", false, false)
+    Chat_ServerPrivateMessage(player, prefix + "This server collects data using the WIP Tone API. View statistics at https://legonzaur.github.io/Tone_WebClient", false, false)
 }
 
 void function killstat_Begin() {
