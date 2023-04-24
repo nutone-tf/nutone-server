@@ -15,7 +15,7 @@
         },
         {
             "Name": "Tone_token",
-            "DefaultValue": "passteyourtokenhere"
+            "DefaultValue": "pasteyourtokenhere"
         },
         {
             "Name": "killstat_custom_parameters",
