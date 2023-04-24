@@ -7,23 +7,15 @@
     "ConVars": [
         {
             "Name": "killstat_version",
-            "DefaultValue": "ks_3.0.0"
-        },
-        {
-            "Name": "Tone_protocol",
-            "DefaultValue": "https"
+            "DefaultValue": "ks_3.0.1"
         },
         {
             "Name": "Tone_URI",
-            "DefaultValue": "tone.sleepycat.date/v1"
-        },
-        {
-            "Name": "Tone_ID",
-            "DefaultValue": "1"
+            "DefaultValue": "https://tone.sleepycat.date/v2"
         },
         {
             "Name": "Tone_token",
-            "DefaultValue": "pasteyourtokenhere"
+            "DefaultValue": "passteyourtokenhere"
         },
         {
             "Name": "killstat_custom_parameters",

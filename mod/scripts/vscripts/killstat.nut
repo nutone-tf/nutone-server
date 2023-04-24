@@ -5,49 +5,11 @@ struct Parameter {
     string value
 }
 
-array<string> HEADERS = [ //unused
-    "killstat_version",
-    "match_id",
-    "game_mode",
-    "map",
-    "unix_time",
-    "game_time",
-    "player_count",
-    "attacker_name",
-    "attacker_id",
-    "attacker_current_weapon",
-    "attacker_current_weapon_mods",
-    "attacker_weapon_1",
-    "attacker_weapon_1_mods",
-    "attacker_weapon_2",
-    "attacker_weapon_2_mods",
-    "attacker_weapon_3",
-    "attacker_weapon_3_mods",
-    "attacker_offhand_weapon_1",
-    "attacker_offhand_weapon_2",
-    //"attacker_offhand_weapon_3", always melee
-    "victim_name",
-    "victim_id",
-    "victim_current_weapon",
-    "victim_current_weapon_mods",
-    "victim_weapon_1",
-    "victim_weapon_1_mods",
-    "victim_weapon_2",
-    "victim_weapon_2_mods",
-    "victim_weapon_3",
-    "victim_weapon_3_mods",
-    "victim_offhand_weapon_1",
-    "victim_offhand_weapon_2",
-    // "victim_offhand_weapon_3", always melee
-    "cause_of_death",
-    "distance"
-]
-
 struct {
     string killstatVersion
     string Tone_URI
     string Tone_protocol
-    int Tone_ID
+    string servername
     string Tone_token
     bool connected
     array<Parameter> customParameters
@@ -60,11 +22,10 @@ struct {
 void function killstat_Init() {
     file.killstatVersion = GetConVarString("killstat_version")
     file.Tone_URI = GetConVarString("Tone_URI")
-    file.Tone_protocol = GetConVarString("Tone_protocol")
-    file.Tone_ID = GetConVarInt("Tone_ID")
     file.Tone_token = GetConVarString("Tone_token")
+    file.Tone_token = "ZjlmZGM0YmEtZjI1Mi00MTNjLTg5MDEtNzI3NzZkNjE2YzRj"
     file.connected = false
-
+    file.servername = GetConVarString("ns_server_name")
     //register to Tone API if default or invalid token
     Tone_Test_Auth()
 
@@ -115,7 +76,7 @@ void function killstat_Begin() {
     file.map = StringReplace(GetMapName(), "mp_", "")
 
     Log("-----BEGIN KILLSTAT-----")
-    Log("Sending kill data to " + file.Tone_protocol + "://" + file.Tone_URI + "/servers/"+file.Tone_ID+"/kill")
+    Log("Sending kill data to " + file.Tone_URI + "/server/kill")
 }
 
 void function killstat_Record(entity victim, entity attacker, var damageInfo) {
@@ -149,9 +110,9 @@ void function killstat_Record(entity victim, entity attacker, var damageInfo) {
     entity vow2 = GetNthWeapon(victimOffhandWeapons, 1)
     entity vow3 = GetNthWeapon(victimOffhandWeapons, 2)
 
-
     values["killstat_version"] <- file.killstatVersion
     values["match_id"] <- format("%08x", file.matchId)
+    values["servername"] <- file.servername
     values["game_mode"] <- file.gameMode
     values["map"] <- file.map
     values["game_time"] <- format("%.3f", Time())
@@ -166,9 +127,11 @@ void function killstat_Record(entity victim, entity attacker, var damageInfo) {
     values["attacker_weapon_2_mods"] <- GetWeaponMods(aw2)
     values["attacker_weapon_3"] <- GetWeaponName(aw3)
     values["attacker_weapon_3_mods"] <- GetWeaponMods(aw3)
-    values["attacker_offhand_weapon_1"] <- GetWeaponMods(aow1)
-    values["attacker_offhand_weapon_2"] <- GetWeaponMods(aow2)
-    values["attacker_offhand_weapon_3"] <- GetWeaponMods(aow3)
+    values["attacker_offhand_weapon_1"] <- GetWeaponName(aow1)
+    values["attacker_offhand_weapon_1_mods"] <- GetWeaponMods(aow1)
+    values["attacker_offhand_weapon_2"] <- GetWeaponName(aow2)
+    values["attacker_offhand_weapon_2_mods"] <- GetWeaponMods(aow1)
+    values["attacker_titan"] <- GetTitan(attacker)
 
     values["victim_name"] <- victim.GetPlayerName()
     values["victim_id"] <- victim.GetUID()
@@ -180,18 +143,26 @@ void function killstat_Record(entity victim, entity attacker, var damageInfo) {
     values["victim_weapon_2_mods"] <- GetWeaponMods(vw2)
     values["victim_weapon_3"] <- GetWeaponName(vw3)
     values["victim_weapon_3_mods"] <- GetWeaponMods(vw3)
-    values["victim_offhand_weapon_1"] <- GetWeaponMods(vow1)
-    values["victim_offhand_weapon_2"] <- GetWeaponMods(vow2)
-    values["victim_offhand_weapon_3"] <- GetWeaponMods(vow3)
+    values["victim_offhand_weapon_1"] <- GetWeaponName(vow1)
+    values["victim_offhand_weapon_1_mods"] <- GetWeaponMods(vow1)
+    values["victim_offhand_weapon_2"] <- GetWeaponName(vow2)
+    values["victim_offhand_weapon_2_mods"] <- GetWeaponMods(vow2)
+    values["victim_titan"] <- GetTitan(victim)
 
     int damageSourceId = DamageInfo_GetDamageSourceIdentifier(damageInfo)
     string damageName = DamageSourceIDToString(damageSourceId)
-    values["cause_of_death"] <- TrimWeaponName(damageName)
+    values["cause_of_death"] <- damageName
 
     float dist = Distance(attacker.GetOrigin(), victim.GetOrigin())
     values["distance"] <- format("%.3f", dist)
 
-    string json = EncodeJSON(values)
+
+    HttpRequest request
+    request.method = HttpRequestMethod.POST
+    request.url = file.Tone_URI + "/server/kill"
+    request.headers = {Authorization = ["Bearer " + file.Tone_token]}
+    request.body = EncodeJSON(values)
+
     void functionref( HttpRequestResponse ) onSuccess = void function ( HttpRequestResponse response )
     {
         if(response.statusCode == 200 || response.statusCode == 201){
@@ -207,7 +178,7 @@ void function killstat_Record(entity victim, entity attacker, var damageInfo) {
         print("[Tone API][WARN]  Couldn't send kill data")
         print("[Tone API][WARN] " + failure.errorMessage )
     }
-    NSHttpPostBody(GetToneURIWithAuth()+ "/servers/"+file.Tone_ID+"/kill", json, onSuccess, onFailure)
+    NSHttpRequest(request, onSuccess, onFailure)
 }
 
 void function killstat_End() {
@@ -300,7 +271,7 @@ entity function GetNthWeapon(array<entity> weapons, int index) {
 string function GetWeaponName(entity weapon) {
     string s = "null"
     if (weapon != null) {
-        s = TrimWeaponName(weapon.GetWeaponClassName())
+        s = weapon.GetWeaponClassName()
     }
     return s
 }
@@ -313,11 +284,9 @@ string function GetWeaponMods(entity weapon) {
     return format("%d", modBits)
 }
 
-string function TrimWeaponName(string s) {
-    s = StringReplace(s, "mp_weapon_", "")
-    s = StringReplace(s, "mp_ability_", "")
-    s = StringReplace(s, "melee_", "")
-    return s
+string function GetTitan(entity player) {
+    if(!player.IsTitan()) return "null"
+    return GetTitanCharacterName(player)
 }
 
 string function Anonymize(entity player) {
@@ -353,77 +322,25 @@ string function join(array<string> list, string separator) {
 void function Tone_Test_Auth(){
     HttpRequest request
     request.method = HttpRequestMethod.POST
-    request.url = GetToneURIWithAuth() + "/servers/"+file.Tone_ID
+    request.url = file.Tone_URI + "/server"
+    request.headers = {Authorization = ["Bearer "+ file.Tone_token]}
     void functionref( HttpRequestResponse ) onSuccess = void function ( HttpRequestResponse response )
     {
         if(response.statusCode == 200){
             print("[Tone API] Tone API Online !")
             file.connected = true
         }else{
-            print("[Tone API] Tone API registration failed")
+            print("[Tone API] Tone API login failed")
             print("[Tone API] " + response.body )
-            thread Tone_Register_Threaded()
+
         }
     }
 
     void functionref( HttpRequestFailure ) onFailure = void function ( HttpRequestFailure failure )
     {
-        print("[Tone API] Tone API registration failed")
+        print("[Tone API] Tone API login failed")
         print("[Tone API] " + failure.errorMessage )
-        thread Tone_Register_Threaded()
     }
 
     NSHttpRequest(request, onSuccess, onFailure)
-}
-
-
-void function Tone_Register_Threaded(){
-    table body = {}
-    body["name"] <- GetConVarString("ns_server_name")
-    body["description"] <- GetConVarString("ns_server_desc")
-    body["auth_port"] <- GetConVarString("ns_player_auth_port")
-    HttpRequest request
-    request.method = HttpRequestMethod.POST
-    request.url = file.Tone_protocol + "://" + file.Tone_URI+ "/servers/register"
-
-    string json = EncodeJSON( body )
-    request.body = json
-    int i = 0
-    void functionref( HttpRequestResponse ) onSuccess = void function ( HttpRequestResponse response )
-    {
-        //print(response.statusCode)
-        if(response.statusCode == 201){
-            table answer = DecodeJSON(response.body)
-            file.Tone_ID = expect int(answer["id"])
-            file.Tone_token = expect string(answer["token"])
-            SetConVarInt("Tone_ID", (expect int(answer["id"])))
-            SetConVarString("Tone_token", (expect string(answer["token"])))
-            print("[Tone API] Tone API Online !")
-            file.connected = true
-        }else{
-            print("[Tone API] Tone API registration failed")
-            print("[Tone API] " + response.body )
-        }
-    }
-
-    void functionref( HttpRequestFailure ) onFailure = void function ( HttpRequestFailure failure )
-    {
-        print("[Tone API] Tone API registration failed")
-        print("[Tone API] "+ failure.errorMessage )
-    }
-
-    while(i < 5 && file.connected == false){
-        print("[Tone API] requesting Tone API for registration... Time " + i + " out of 5" )
-        NSHttpRequest( request, onSuccess, onFailure )
-        i = i + 1
-        wait 300
-    }
-    print("[Tone API] Tone API registration failed. Stopping registration requests for now. Try mentionning @Legonzaur#2100 about this issue.")
-
-    return
-}
-
-
-string function GetToneURIWithAuth(){
-    return file.Tone_protocol + "://" +file.Tone_ID+":"+file.Tone_token+"@"+ file.Tone_URI
 }
