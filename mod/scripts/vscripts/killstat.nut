@@ -12,6 +12,7 @@ struct {
     string servername
     string Tone_token
     bool connected
+    //remove this in the future
     array<Parameter> customParameters
 
     int matchId
@@ -23,7 +24,6 @@ void function killstat_Init() {
     file.killstatVersion = GetConVarString("killstat_version")
     file.Tone_URI = GetConVarString("Tone_URI")
     file.Tone_token = GetConVarString("Tone_token")
-    file.Tone_token = "ZjlmZGM0YmEtZjI1Mi00MTNjLTg5MDEtNzI3NzZkNjE2YzRj"
     file.connected = false
     file.servername = GetConVarString("ns_server_name")
     //register to Tone API if default or invalid token
@@ -84,7 +84,7 @@ void function killstat_Record(entity victim, entity attacker, var damageInfo) {
             return
 
     table values = {}
-
+    //remove this in the future
     foreach (Parameter p in file.customParameters) {
         values[p] <- p.value
     }
