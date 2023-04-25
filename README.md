@@ -1,6 +1,6 @@
 # fvnkhead.killstat
 
-To use, you MUST set `Tone_token` and `Tone_ID` convars
+To use, you MUST set `Tone_token`
 
 For now, DM @Legonzaur#2100 to get those informations
 
