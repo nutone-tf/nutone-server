@@ -1,7 +1,7 @@
 {
     "Name": "fvnkhead.killstat",
     "Description": "Gather kill statistics and sends them to Tone API server.",
-    "Version": "3.0.1",
+    "Version": "3.0.2",
     "LoadPriority": 1,
     "RequiredOnClient": false,
     "ConVars": [
