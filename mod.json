@@ -15,7 +15,7 @@
         },
         {
             "Name": "Tone_token",
-            "DefaultValue": "pasteyourtokenhere"
+            "DefaultValue": "CHECK_NORTHSTAR_INSTRUCTIONS_ABOUT_CONVARS"
         },
         {
             "Name": "killstat_custom_parameters",
