@@ -1,9 +1,5 @@
 global function killstat_Init
 
-struct Parameter {
-    string name
-    string value
-}
 
 struct {
     string killstatVersion
@@ -12,8 +8,6 @@ struct {
     string servername
     string Tone_token
     bool connected
-    //remove this in the future
-    array<Parameter> customParameters
 
     int matchId
     string gameMode
@@ -29,35 +23,11 @@ void function killstat_Init() {
     //register to Tone API if default or invalid token
     Tone_Test_Auth()
 
-    // custom parameters
-    string customParameterString = GetConVarString("killstat_custom_parameters")
-    array<string> customParameterEntries = split(customParameterString, ",")
-    file.customParameters = []
-    foreach (string customParameterEntry in customParameterEntries) {
-        array<string> customParameterPair = split(customParameterEntry, "=")
-        if (customParameterPair.len() != 2) {
-            Log("[WARN] ignoring invalid custom parameter: " + customParameterEntry)
-            continue
-        }
-
-        Parameter customParameter
-        customParameter.name = strip(customParameterPair[0])
-        customParameter.value = strip(customParameterPair[1])
-        file.customParameters.append(customParameter)
-    }
-
     // callbacks
     AddCallback_GameStateEnter(eGameState.Playing, killstat_Begin)
     AddCallback_OnPlayerKilled(killstat_Record)
     AddCallback_GameStateEnter(eGameState.Postmatch, killstat_End)
     AddCallback_OnClientConnected(JoinMessage)
-}
-
-Parameter function NewParameter(string name, string value) {
-    Parameter p
-    p.name = name
-    p.value = value
-    return p
 }
 
 string prefix = "\x1b[38;5;81m[TONE API]\x1b[0m "
@@ -84,10 +54,6 @@ void function killstat_Record(entity victim, entity attacker, var damageInfo) {
             return
 
     table values = {}
-    //remove this in the future
-    foreach (Parameter p in file.customParameters) {
-        values[p] <- p.value
-    }
 
     array<entity> attackerWeapons = attacker.GetMainWeapons()
     array<entity> victimWeapons = victim.GetMainWeapons()
@@ -120,33 +86,21 @@ void function killstat_Record(entity victim, entity attacker, var damageInfo) {
     values["attacker_name"] <- attacker.GetPlayerName()
     values["attacker_id"] <- attacker.GetUID()
     values["attacker_current_weapon"] <- GetWeaponName(attacker.GetLatestPrimaryWeapon())
-    values["attacker_current_weapon_mods"] <- GetWeaponMods(attacker.GetLatestPrimaryWeapon())
     values["attacker_weapon_1"] <- GetWeaponName(aw1)
-    values["attacker_weapon_1_mods"] <- GetWeaponMods(aw1)
     values["attacker_weapon_2"] <- GetWeaponName(aw2)
-    values["attacker_weapon_2_mods"] <- GetWeaponMods(aw2)
     values["attacker_weapon_3"] <- GetWeaponName(aw3)
-    values["attacker_weapon_3_mods"] <- GetWeaponMods(aw3)
     values["attacker_offhand_weapon_1"] <- GetWeaponName(aow1)
-    values["attacker_offhand_weapon_1_mods"] <- GetWeaponMods(aow1)
     values["attacker_offhand_weapon_2"] <- GetWeaponName(aow2)
-    values["attacker_offhand_weapon_2_mods"] <- GetWeaponMods(aow1)
     values["attacker_titan"] <- GetTitan(attacker)
 
     values["victim_name"] <- victim.GetPlayerName()
     values["victim_id"] <- victim.GetUID()
     values["victim_current_weapon"] <- GetWeaponName(victim.GetLatestPrimaryWeapon())
-    values["victim_current_weapon_mods"] <- GetWeaponMods(victim.GetLatestPrimaryWeapon())
     values["victim_weapon_1"] <-  GetWeaponName(vw1)
-    values["victim_weapon_1_mods"] <- GetWeaponMods(vw1)
     values["victim_weapon_2"] <- GetWeaponName(vw2)
-    values["victim_weapon_2_mods"] <- GetWeaponMods(vw2)
     values["victim_weapon_3"] <- GetWeaponName(vw3)
-    values["victim_weapon_3_mods"] <- GetWeaponMods(vw3)
     values["victim_offhand_weapon_1"] <- GetWeaponName(vow1)
-    values["victim_offhand_weapon_1_mods"] <- GetWeaponMods(vow1)
     values["victim_offhand_weapon_2"] <- GetWeaponName(vow2)
-    values["victim_offhand_weapon_2_mods"] <- GetWeaponMods(vow2)
     values["victim_titan"] <- GetTitan(victim)
 
     int damageSourceId = DamageInfo_GetDamageSourceIdentifier(damageInfo)
@@ -223,21 +177,6 @@ array<int> MAIN_DAMAGE_SOURCES = [
 	eDamageSourceId.mp_weapon_arc_launcher,
 	eDamageSourceId.mp_weapon_defender
 ]
-
-void function DumpWeaponModBitFields() {
-    Log("[DumpWeaponModBitFields]")
-    foreach (int damageSourceId in MAIN_DAMAGE_SOURCES) {
-        string weaponName = DamageSourceIDToString(damageSourceId)
-        array<string> mods = GetWeaponMods_Global(weaponName)
-        array<string> list = [weaponName]
-        foreach (string mod in mods) {
-            list.append(mod)
-        }
-
-        Log("[DumpWeaponModBitFields] " + ToPythonList(list))
-    }
-}
-
 // Should sort main weapons in following order:
 // 1. primary
 // 2. secondary
@@ -293,31 +232,9 @@ string function Anonymize(entity player) {
     return "null" // unused
 }
 
-
-string function ToPythonList(array<string> list) {
-    array<string> quoted = []
-    foreach (string s in list) {
-        quoted.append("'" + s + "'")
-    }
-
-    return "\"[" + join(quoted, ", ") + "]\""
-}
-
 void function Log(string s) {
     print("[fvnkhead.killstat] " + s)
 }
-string function join(array<string> list, string separator) {
-    string s = ""
-        for (int i = 0; i < list.len(); i++) {
-            s += list[i]
-                if (i < list.len() - 1) {
-                    s += separator
-                }
-        }
-
-    return s
-}
-
 
 void function Tone_Test_Auth(){
     HttpRequest request

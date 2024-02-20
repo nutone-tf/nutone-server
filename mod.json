@@ -1,13 +1,13 @@
 {
-    "Name": "fvnkhead.killstat",
-    "Description": "Gather kill statistics and sends them to Tone API server.",
-    "Version": "3.0.4",
+    "Name": "nutone.server",
+    "Description": "Gather kill statistics and sends them to the Nutone API.",
+    "Version": "1.0.0",
     "LoadPriority": 1,
     "RequiredOnClient": false,
     "ConVars": [
         {
             "Name": "killstat_version",
-            "DefaultValue": "ks_3.0.1"
+            "DefaultValue": "ks_4.0.0"
         },
         {
             "Name": "Tone_URI",
@@ -16,10 +16,6 @@
         {
             "Name": "Tone_token",
             "DefaultValue": "CHECK_NORTHSTAR_WIKI_INSTRUCTIONS_ABOUT_CONVARS"
-        },
-        {
-            "Name": "killstat_custom_parameters",
-            "DefaultValue": ""
         }
     ],
     "Scripts": [
