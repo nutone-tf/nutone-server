@@ -214,14 +214,6 @@ string function GetWeaponName(entity weapon) {
     return s
 }
 
-string function GetWeaponMods(entity weapon) {
-    if (weapon == null) {
-        return "null"
-    }
-    int modBits = weapon.GetModBitField()
-    return format("%d", modBits)
-}
-
 string function GetTitan(entity player) {
     if(!player.IsTitan()) return "null"
     return GetTitanCharacterName(player)
