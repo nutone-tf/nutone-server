@@ -3,10 +3,10 @@ global function killstat_Init
 
 struct {
     string killstatVersion
-    string Tone_URI
-    string Tone_protocol
+    string endpoint
+    string protocol
     string servername
-    string Tone_token
+    string token
     bool connected
 
     int matchId
@@ -16,12 +16,12 @@ struct {
 
 void function killstat_Init() {
     file.killstatVersion = GetConVarString("killstat_version")
-    file.Tone_URI = GetConVarString("Tone_URI")
-    file.Tone_token = GetConVarString("Tone_token")
+    file.endpoint = GetConVarString("endpoint")
+    file.token = GetConVarString("nutoken")
     file.connected = false
     file.servername = GetConVarString("ns_server_name")
-    //register to Tone API if default or invalid token
-    Tone_Test_Auth()
+    //register to NUTONEAPI if default or invalid token
+    nutone_verify()
 
     // callbacks
     AddCallback_GameStateEnter(eGameState.Playing, killstat_Begin)
@@ -30,11 +30,10 @@ void function killstat_Init() {
     AddCallback_OnClientConnected(JoinMessage)
 }
 
-string prefix = "\x1b[38;5;81m[TONE API]\x1b[0m "
+string prefix = "\x1b[38;5;81m[NUTONEAPI]\x1b[0m "
 
 void function JoinMessage(entity player) {
-    //Chat_ServerPrivateMessage(player, prefix + "This server collects data using the Tone API. Check your data here: \x1b[34mtoneapi.com/" + player.GetPlayerName()+ "\x1b[0m", false, false)
-    Chat_ServerPrivateMessage(player, prefix + "This server collects data using the WIP Tone API. View statistics at https://toneapi.ovh", false, false)
+    Chat_ServerPrivateMessage(player, prefix + "This server collects data using the Nutone API. Check your data here: \x1b[34mhttps://nutone.okudai.dev/frontend" + player.GetPlayerName()+ "\x1b[0m", false, false)
 }
 
 void function killstat_Begin() {
@@ -46,7 +45,7 @@ void function killstat_Begin() {
     file.map = StringReplace(GetMapName(), "mp_", "")
 
     Log("-----BEGIN KILLSTAT-----")
-    Log("Sending kill data to " + file.Tone_URI + "/server/kill")
+    Log("Sending kill data to " + file.endpoint + "/server/kill")
 }
 
 void function killstat_Record(entity victim, entity attacker, var damageInfo) {
@@ -113,24 +112,24 @@ void function killstat_Record(entity victim, entity attacker, var damageInfo) {
 
     HttpRequest request
     request.method = HttpRequestMethod.POST
-    request.url = file.Tone_URI + "/server/kill"
-    request.headers = {Authorization = ["Bearer " + file.Tone_token]}
+    request.url = file.endpoint + "/server/kill"
+    request.headers = {Authorization = ["Bearer " + file.token]}
     request.body = EncodeJSON(values)
 
     void functionref( HttpRequestResponse ) onSuccess = void function ( HttpRequestResponse response )
     {
         if(response.statusCode == 200 || response.statusCode == 201){
-            print("[Tone API] Kill data sent!")
+            print("[NUTONEAPI] Kill data sent!")
         }else{
-            print("[Tone API][WARN] Couldn't send kill data")
-            print("[Tone API][WARN] " + response.body )
+            print("[NUTONEAPI][WARN] Couldn't send kill data")
+            print("[NUTONEAPI][WARN] " + response.body )
         }
     }
 
     void functionref( HttpRequestFailure ) onFailure = void function ( HttpRequestFailure failure )
     {
-        print("[Tone API][WARN]  Couldn't send kill data")
-        print("[Tone API][WARN] " + failure.errorMessage )
+        print("[NUTONEAPI][WARN]  Couldn't send kill data")
+        print("[NUTONEAPI][WARN] " + failure.errorMessage )
     }
     NSHttpRequest(request, onSuccess, onFailure)
 }
@@ -236,27 +235,27 @@ void function Log(string s) {
     print("[fvnkhead.killstat] " + s)
 }
 
-void function Tone_Test_Auth(){
+void function nutone_verify(){
     HttpRequest request
     request.method = HttpRequestMethod.POST
-    request.url = file.Tone_URI + "/server"
-    request.headers = {Authorization = ["Bearer "+ file.Tone_token]}
+    request.url = file.endpoint + "/server"
+    request.headers = {Authorization = ["Bearer "+ file.token]}
     void functionref( HttpRequestResponse ) onSuccess = void function ( HttpRequestResponse response )
     {
         if(response.statusCode == 200){
-            print("[Tone API] Tone API Online !")
+            print("[NUTONEAPI] NUTONEAPI Online !")
             file.connected = true
         }else{
-            print("[Tone API] Tone API login failed")
-            print("[Tone API] " + response.body )
+            print("[NUTONEAPI] NUTONEAPI login failed")
+            print("[NUTONEAPI] " + response.body )
 
         }
     }
 
     void functionref( HttpRequestFailure ) onFailure = void function ( HttpRequestFailure failure )
     {
-        print("[Tone API] Tone API login failed")
-        print("[Tone API] " + failure.errorMessage )
+        print("[NUTONEAPI] NUTONEAPI login failed")
+        print("[NUTONEAPI] " + failure.errorMessage )
     }
 
     NSHttpRequest(request, onSuccess, onFailure)
