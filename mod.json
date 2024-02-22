@@ -14,7 +14,7 @@
             "DefaultValue": "https://nutone.okudai.dev/v1"
         },
         {
-            "Name": "nutone_token",
+            "Name": "nutoken",
             "DefaultValue": "CHECK_NORTHSTAR_WIKI_INSTRUCTIONS_ABOUT_CONVARS"
         }
     ],
