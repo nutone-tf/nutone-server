@@ -70,7 +70,9 @@ void function killstat_Record(entity victim, entity attacker, var damageInfo) {
     entity vow2 = GetNthWeapon(victimOffhandWeapons, 1)
     entity vow3 = GetNthWeapon(victimOffhandWeapons, 2)
 
-    values["killstat_version"] <- file.killstatVersion
+    vector attackerPos = attacker.GetOrigin()
+    vector victimPos = victim.GetOrigin()
+
     values["match_id"] <- format("%08x", file.matchId)
     values["servername"] <- file.servername
     values["game_mode"] <- file.gameMode
@@ -86,6 +88,9 @@ void function killstat_Record(entity victim, entity attacker, var damageInfo) {
     values["attacker_offhand_weapon_1"] <- GetWeaponName(aow1)
     values["attacker_offhand_weapon_2"] <- GetWeaponName(aow2)
     values["attacker_titan"] <- GetTitan(attacker)
+    values["attacker_x"] <- attackerPos.x
+    values["attacker_y"] <- attackerPos.y
+    values["attacker_z"] <- attackerPos.z
 
     values["victim_name"] <- victim.GetPlayerName()
     values["victim_id"] <- victim.GetUID()
@@ -96,6 +101,9 @@ void function killstat_Record(entity victim, entity attacker, var damageInfo) {
     values["victim_offhand_weapon_1"] <- GetWeaponName(vow1)
     values["victim_offhand_weapon_2"] <- GetWeaponName(vow2)
     values["victim_titan"] <- GetTitan(victim)
+    values["victim_x"] <- victimPos.x
+    values["victim_y"] <- victimPos.y
+    values["victim_z"] <- victimPos.z
 
     int damageSourceId = DamageInfo_GetDamageSourceIdentifier(damageInfo)
     string damageName = DamageSourceIDToString(damageSourceId)
