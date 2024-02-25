@@ -3,7 +3,7 @@ global function killstat_Init
 
 struct {
     string killstatVersion
-    string endpoint
+    string host
     string protocol
     string servername
     string token
@@ -15,9 +15,8 @@ struct {
 } file
 
 void function killstat_Init() {
-    file.killstatVersion = GetConVarString("killstat_version")
-    file.endpoint = GetConVarString("endpoint")
-    file.token = GetConVarString("nutoken")
+    file.host = GetConVarString("nutone_host")
+    file.token = GetConVarString("nutone_token")
     file.connected = false
     file.servername = GetConVarString("ns_server_name")
     //register to NUTONEAPI if default or invalid token
@@ -37,15 +36,11 @@ void function JoinMessage(entity player) {
 }
 
 void function killstat_Begin() {
-    //DumpWeaponModBitFields()
-    //TODO : request MatchID from API ------------------------------------------------------------------------------------------------
-    //TODO : request anonymization data from API
     file.matchId = RandomInt(2000000000)
     file.gameMode = GameRules_GetGameMode()
     file.map = StringReplace(GetMapName(), "mp_", "")
 
-    Log("-----BEGIN KILLSTAT-----")
-    Log("Sending kill data to " + file.endpoint + "/server/kill")
+    Log("Sending kill data to " + file.host + "/data")
 }
 
 void function killstat_Record(entity victim, entity attacker, var damageInfo) {
@@ -112,7 +107,7 @@ void function killstat_Record(entity victim, entity attacker, var damageInfo) {
 
     HttpRequest request
     request.method = HttpRequestMethod.POST
-    request.url = file.endpoint + "/server/kill"
+    request.url = file.host + "/data"
     request.headers = {Authorization = ["Bearer " + file.token]}
     request.body = EncodeJSON(values)
 
@@ -230,7 +225,7 @@ void function Log(string s) {
 void function nutone_verify(){
     HttpRequest request
     request.method = HttpRequestMethod.POST
-    request.url = file.endpoint + "/server"
+    request.url = file.host + "/auth"
     request.headers = {Authorization = ["Bearer "+ file.token]}
     void functionref( HttpRequestResponse ) onSuccess = void function ( HttpRequestResponse response )
     {

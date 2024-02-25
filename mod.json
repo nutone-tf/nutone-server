@@ -6,15 +6,11 @@
     "RequiredOnClient": false,
     "ConVars": [
         {
-            "Name": "killstat_version",
-            "DefaultValue": "ks_4.0.0"
+            "Name": "nutone_host",
+            "DefaultValue": "localhost:80"
         },
         {
-            "Name": "endpoint",
-            "DefaultValue": "https://nutone.okudai.dev/v1"
-        },
-        {
-            "Name": "nutoken",
+            "Name": "nutone_token",
             "DefaultValue": "CHECK_NORTHSTAR_WIKI_INSTRUCTIONS_ABOUT_CONVARS"
         }
     ],
