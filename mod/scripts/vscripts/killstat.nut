@@ -44,7 +44,7 @@ void function killstat_Begin() {
 }
 
 void function killstat_Record(entity victim, entity attacker, var damageInfo) {
-    if ( !victim.IsPlayer() || !attacker.IsPlayer() || GetGameState() != eGameState.Playing )
+    if ( !victim.IsPlayer() || !attacker.IsPlayer() || GetGameState() != eGameState.Playing ) 
             return
 
     table values = {}
@@ -74,11 +74,10 @@ void function killstat_Record(entity victim, entity attacker, var damageInfo) {
     vector victimPos = victim.GetOrigin()
 
     values["match_id"] <- format("%08x", file.matchId)
-    values["servername"] <- file.servername
+    values["server_name"] <- file.servername
     values["game_mode"] <- file.gameMode
+    values["game_time"] <- Time()
     values["map"] <- file.map
-    values["game_time"] <- format("%.3f", Time())
-    values["player_count"] <- format("%d", GetPlayerArray().len())
     values["attacker_name"] <- attacker.GetPlayerName()
     values["attacker_id"] <- attacker.GetUID()
     values["attacker_current_weapon"] <- GetWeaponName(attacker.GetLatestPrimaryWeapon())
@@ -110,13 +109,12 @@ void function killstat_Record(entity victim, entity attacker, var damageInfo) {
     values["cause_of_death"] <- damageName
 
     float dist = Distance(attacker.GetOrigin(), victim.GetOrigin())
-    values["distance"] <- format("%.3f", dist)
-
+    values["distance"] <- dist
 
     HttpRequest request
     request.method = HttpRequestMethod.POST
     request.url = file.host + "/data"
-    request.headers = {Authorization = ["Bearer " + file.token]}
+    request.headers = {Token = [file.token]}
     request.body = EncodeJSON(values)
 
     void functionref( HttpRequestResponse ) onSuccess = void function ( HttpRequestResponse response )
@@ -124,7 +122,7 @@ void function killstat_Record(entity victim, entity attacker, var damageInfo) {
         if(response.statusCode == 200 || response.statusCode == 201){
             print("[NUTONEAPI] Kill data sent!")
         }else{
-            print("[NUTONEAPI][WARN] Couldn't send kill data")
+            print("[NUTONEAPI][WARN] Couldn't send kill data, status " + response.statusCode)
             print("[NUTONEAPI][WARN] " + response.body )
         }
     }
@@ -227,14 +225,14 @@ string function Anonymize(entity player) {
 }
 
 void function Log(string s) {
-    print("[fvnkhead.killstat] " + s)
+    print("[NUTONEAPI] " + s)
 }
 
 void function nutone_verify(){
     HttpRequest request
     request.method = HttpRequestMethod.POST
     request.url = file.host + "/auth"
-    request.headers = {Authorization = ["Bearer "+ file.token]}
+    request.headers = {Token = [file.token]}
     void functionref( HttpRequestResponse ) onSuccess = void function ( HttpRequestResponse response )
     {
         if(response.statusCode == 200){

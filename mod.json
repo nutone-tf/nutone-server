@@ -7,11 +7,11 @@
     "ConVars": [
         {
             "Name": "nutone_host",
-            "DefaultValue": "localhost:80"
+            "DefaultValue": "nutone.okudai.dev:8080"
         },
         {
             "Name": "nutone_token",
-            "DefaultValue": "CHECK_NORTHSTAR_WIKI_INSTRUCTIONS_ABOUT_CONVARS"
+            "DefaultValue": "1234"
         }
     ],
     "Scripts": [
