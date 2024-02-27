@@ -7,7 +7,7 @@
     "ConVars": [
         {
             "Name": "nutone_host",
-            "DefaultValue": "nutone.okudai.dev:8080"
+            "DefaultValue": "nutone.okudai.dev"
         },
         {
             "Name": "nutone_token",
