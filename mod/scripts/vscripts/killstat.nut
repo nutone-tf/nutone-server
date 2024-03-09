@@ -5,7 +5,8 @@ struct {
     string killstatVersion
     string host
     string protocol
-    string servername
+    string serverId
+    string serverName
     string token
     bool connected
 
@@ -18,7 +19,12 @@ void function killstat_Init() {
     file.host = GetConVarString("nutone_host")
     file.token = GetConVarString("nutone_token")
     file.connected = false
-    file.servername = GetConVarString("ns_server_name")
+    file.serverName = GetConVarString("ns_server_name")
+    file.serverId = GetConVarString("nutone_server_id")
+    if ( file.serverId == "" ) {
+        file.serverId = file.serverName
+    }
+
     //register to NUTONEAPI if default or invalid token
     nutone_verify()
 
@@ -32,7 +38,7 @@ void function killstat_Init() {
 string prefix = "\x1b[38;5;81m[NUTONEAPI]\x1b[0m "
 
 void function JoinMessage(entity player) {
-    Chat_ServerPrivateMessage(player, prefix + "This server collects data using the Nutone API. Check your data here: \x1b[34mhttps://nutone.okudai.dev/frontend" + player.GetPlayerName()+ "\x1b[0m", false, false)
+    //Chat_ServerPrivateMessage(player, prefix + "This server collects data using the Nutone API. Check your data here: \x1b[34mhttps://nutone.okudai.dev/frontend" + player.GetPlayerName()+ "\x1b[0m", false, false)
 }
 
 void function killstat_Begin() {
@@ -74,7 +80,8 @@ void function killstat_Record(entity victim, entity attacker, var damageInfo) {
     vector victimPos = victim.GetOrigin()
 
     values["match_id"] <- format("%08x", file.matchId)
-    values["server_name"] <- file.servername
+    values["server_id"] <- file.serverId
+    values["server_name"] <- file.serverName
     values["game_mode"] <- file.gameMode
     values["game_time"] <- Time()
     values["map"] <- file.map
