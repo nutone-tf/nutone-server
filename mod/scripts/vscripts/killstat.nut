@@ -15,6 +15,23 @@ struct {
     string map
 } file
 
+string function sanitizePlayerName(string name) {
+    
+
+    if (name.len() > 3 && name[0] == 40 && name.find(")") != null  && name[1] > 47 && name[1] < 58) {
+        string outputname = "";
+        array <string> parts = split(name, ")");
+        for (int i = 1; i < parts.len(); i++) {
+            outputname += parts[i];
+        }
+        // print(outputname);
+         return outputname;
+    }
+    // print(name);
+    return name;
+   
+}
+
 void function killstat_Init() {
     file.host = GetConVarString("nutone_host")
     file.token = GetConVarString("nutone_token")
@@ -85,7 +102,7 @@ void function killstat_Record(entity victim, entity attacker, var damageInfo) {
     values["game_mode"] <- file.gameMode
     values["game_time"] <- Time()
     values["map"] <- file.map
-    values["attacker_name"] <- attacker.GetPlayerName()
+    values["attacker_name"] <- sanitizePlayerName(attacker.GetPlayerName())
     values["attacker_id"] <- attacker.GetUID()
     values["attacker_current_weapon"] <- GetWeaponName(attacker.GetLatestPrimaryWeapon())
     values["attacker_weapon_1"] <- GetWeaponName(aw1)
@@ -98,7 +115,7 @@ void function killstat_Record(entity victim, entity attacker, var damageInfo) {
     values["attacker_y"] <- attackerPos.y
     values["attacker_z"] <- attackerPos.z
 
-    values["victim_name"] <- victim.GetPlayerName()
+    values["victim_name"] <- sanitizePlayerName(victim.GetPlayerName())
     values["victim_id"] <- victim.GetUID()
     values["victim_current_weapon"] <- GetWeaponName(victim.GetLatestPrimaryWeapon())
     values["victim_weapon_1"] <-  GetWeaponName(vw1)
