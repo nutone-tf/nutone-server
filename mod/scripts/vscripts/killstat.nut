@@ -72,27 +72,6 @@ void function killstat_Record(entity victim, entity attacker, var damageInfo) {
 
     table values = {}
 
-    array<entity> attackerWeapons = attacker.GetMainWeapons()
-    array<entity> victimWeapons = victim.GetMainWeapons()
-    array<entity> attackerOffhandWeapons = attacker.GetOffhandWeapons()
-    array<entity> victimOffhandWeapons = victim.GetOffhandWeapons()
-
-    attackerWeapons.sort(MainWeaponSort)
-    victimWeapons.sort(MainWeaponSort)
-
-    entity aw1 = GetNthWeapon(attackerWeapons, 0)
-    entity aw2 = GetNthWeapon(attackerWeapons, 1)
-    entity aw3 = GetNthWeapon(attackerWeapons, 2)
-    entity vw1 = GetNthWeapon(victimWeapons, 0)
-    entity vw2 = GetNthWeapon(victimWeapons, 1)
-    entity vw3 = GetNthWeapon(victimWeapons, 2)
-    entity aow1 = GetNthWeapon(attackerOffhandWeapons, 0)
-    entity aow2 = GetNthWeapon(attackerOffhandWeapons, 1)
-    entity aow3 = GetNthWeapon(attackerOffhandWeapons, 2)
-    entity vow1 = GetNthWeapon(victimOffhandWeapons, 0)
-    entity vow2 = GetNthWeapon(victimOffhandWeapons, 1)
-    entity vow3 = GetNthWeapon(victimOffhandWeapons, 2)
-
     vector attackerPos = attacker.GetOrigin()
     vector victimPos = victim.GetOrigin()
 
@@ -105,11 +84,6 @@ void function killstat_Record(entity victim, entity attacker, var damageInfo) {
     values["attacker_name"] <- sanitizePlayerName(attacker.GetPlayerName())
     values["attacker_id"] <- attacker.GetUID()
     values["attacker_current_weapon"] <- GetWeaponName(attacker.GetLatestPrimaryWeapon())
-    values["attacker_weapon_1"] <- GetWeaponName(aw1)
-    values["attacker_weapon_2"] <- GetWeaponName(aw2)
-    values["attacker_weapon_3"] <- GetWeaponName(aw3)
-    values["attacker_offhand_weapon_1"] <- GetWeaponName(aow1)
-    values["attacker_offhand_weapon_2"] <- GetWeaponName(aow2)
     values["attacker_titan"] <- GetTitan(attacker)
     values["attacker_x"] <- attackerPos.x
     values["attacker_y"] <- attackerPos.y
@@ -118,11 +92,6 @@ void function killstat_Record(entity victim, entity attacker, var damageInfo) {
     values["victim_name"] <- sanitizePlayerName(victim.GetPlayerName())
     values["victim_id"] <- victim.GetUID()
     values["victim_current_weapon"] <- GetWeaponName(victim.GetLatestPrimaryWeapon())
-    values["victim_weapon_1"] <-  GetWeaponName(vw1)
-    values["victim_weapon_2"] <- GetWeaponName(vw2)
-    values["victim_weapon_3"] <- GetWeaponName(vw3)
-    values["victim_offhand_weapon_1"] <- GetWeaponName(vow1)
-    values["victim_offhand_weapon_2"] <- GetWeaponName(vow2)
     values["victim_titan"] <- GetTitan(victim)
     values["victim_x"] <- victimPos.x
     values["victim_y"] <- victimPos.y
@@ -201,35 +170,6 @@ array<int> MAIN_DAMAGE_SOURCES = [
 	eDamageSourceId.mp_weapon_arc_launcher,
 	eDamageSourceId.mp_weapon_defender
 ]
-// Should sort main weapons in following order:
-// 1. primary
-// 2. secondary
-// 3. anti-titan
-int function MainWeaponSort(entity a, entity b) {
-    int aID = a.GetDamageSourceID()
-    int bID = b.GetDamageSourceID()
-
-    int aIdx = MAIN_DAMAGE_SOURCES.find(aID)
-    int bIdx = MAIN_DAMAGE_SOURCES.find(bID)
-
-    if (aIdx == bIdx) {
-        return 0
-    } else if (aIdx != -1 && bIdx == -1) {
-        return -1
-    } else if (aIdx == -1 && bIdx != -1) {
-        return 1
-    }
-
-    return aIdx < bIdx ? -1 : 1
-}
-
-int function WeaponNameSort(entity a, entity b) {
-    return SortStringAlphabetize(a.GetWeaponClassName(), b.GetWeaponClassName())
-}
-
-entity function GetNthWeapon(array<entity> weapons, int index) {
-    return index < weapons.len() ? weapons[index] : null
-}
 
 string function GetWeaponName(entity weapon) {
     string s = "null"
