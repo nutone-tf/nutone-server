@@ -5,14 +5,14 @@
     "LoadPriority": 1,
     "RequiredOnClient": false,
     "ConVars": [
-            //"DefaultValue": "167.235.253.159:8080"
+        //"DefaultValue": "nutone.okudai.dev/v1"
         {
             "Name": "nutone_host",
-            "DefaultValue": "nutone.okudai.dev"
+            "DefaultValue": "nutone.okudai.dev/v1"
         },
         {
             "Name": "nutone_token",
-            "DefaultValue": "1234"
+            "DefaultValue": ""
         },
         /// Fill this if you want to change server name while keeping its stats intact
         {
