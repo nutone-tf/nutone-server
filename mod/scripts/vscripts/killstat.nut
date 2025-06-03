@@ -109,17 +109,17 @@ void function killstat_Record(entity victim, entity attacker, var damageInfo) {
     void functionref( HttpRequestResponse ) onSuccess = void function ( HttpRequestResponse response )
     {
         if(response.statusCode == 200 || response.statusCode == 201){
-            print("[NUTONEAPI] Kill data sent!")
+            Log("Kill data sent!")
         }else{
-            print("[NUTONEAPI][WARN] Couldn't send kill data, status " + response.statusCode)
-            print("[NUTONEAPI][WARN] " + response.body )
+            Log("[WARN] Couldn't send kill data, status " + response.statusCode)
+            Log("[WARN] " + response.body )
         }
     }
 
     void functionref( HttpRequestFailure ) onFailure = void function ( HttpRequestFailure failure )
     {
-        print("[NUTONEAPI][WARN]  Couldn't send kill data")
-        print("[NUTONEAPI][WARN] " + failure.errorMessage )
+        Log("[WARN]  Couldn't send kill data")
+        Log("[WARN] " + failure.errorMessage )
     }
     NSHttpRequest(request, onSuccess, onFailure)
 }
