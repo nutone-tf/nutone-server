@@ -42,11 +42,6 @@ void function killstat_Init() {
         Log("You must set 'nutone_server_id' to send data!'")
         return
     }
-
-    //register to NUTONEAPI if default or invalid token
-    nutone_verify()
-
-    // callbacks
     AddCallback_GameStateEnter(eGameState.Playing, killstat_Begin)
     AddCallback_OnPlayerKilled(killstat_Record)
     AddCallback_GameStateEnter(eGameState.Postmatch, killstat_End)
@@ -191,30 +186,4 @@ string function Anonymize(entity player) {
 
 void function Log(string s) {
     print("[NUTONEAPI] " + s)
-}
-
-void function nutone_verify(){
-    HttpRequest request
-    request.method = HttpRequestMethod.POST
-    request.url = file.host + "/auth"
-    request.headers = {token = [file.token]}
-    void functionref( HttpRequestResponse ) onSuccess = void function ( HttpRequestResponse response )
-    {
-        if(response.statusCode == 200){
-            print("[NUTONEAPI] NUTONEAPI Online !")
-            file.connected = true
-        }else{
-            print("[NUTONEAPI] NUTONEAPI login failed")
-            print("[NUTONEAPI] " + response.body )
-
-        }
-    }
-
-    void functionref( HttpRequestFailure ) onFailure = void function ( HttpRequestFailure failure )
-    {
-        print("[NUTONEAPI] NUTONEAPI login failed")
-        print("[NUTONEAPI] " + failure.errorMessage )
-    }
-
-    NSHttpRequest(request, onSuccess, onFailure)
 }
