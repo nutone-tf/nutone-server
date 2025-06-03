@@ -5,7 +5,8 @@
     "LoadPriority": 1,
     "RequiredOnClient": false,
     "ConVars": [
-        //"DefaultValue": "nutone.okudai.dev/v1"
+        //nutone_host should stay the same unless you are willing to self-host Nutone or a fork of it
+        //Required: 'nutone_token' must be set to the token you have been sent 
         {
             "Name": "nutone_host",
             "DefaultValue": "nutone.okudai.dev/v1"
