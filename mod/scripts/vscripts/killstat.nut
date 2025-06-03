@@ -82,16 +82,16 @@ void function killstat_Record(entity victim, entity attacker, var damageInfo) {
     values["game_time"] <- Time()
     values["map"] <- file.map
     values["attacker_name"] <- sanitizePlayerName(attacker.GetPlayerName())
-    values["attacker_id"] <- attacker.GetUID()
-    values["attacker_current_weapon"] <- GetWeaponName(attacker.GetLatestPrimaryWeapon())
+    values["attacker_uid"] <- attacker.GetUID()
+    values["attacker_weapon"] <- GetWeaponName(attacker.GetLatestPrimaryWeapon())
     values["attacker_titan"] <- GetTitan(attacker)
     values["attacker_x"] <- attackerPos.x
     values["attacker_y"] <- attackerPos.y
     values["attacker_z"] <- attackerPos.z
 
     values["victim_name"] <- sanitizePlayerName(victim.GetPlayerName())
-    values["victim_id"] <- victim.GetUID()
-    values["victim_current_weapon"] <- GetWeaponName(victim.GetLatestPrimaryWeapon())
+    values["victim_uid"] <- victim.GetUID()
+    values["victim_weapon"] <- GetWeaponName(victim.GetLatestPrimaryWeapon())
     values["victim_titan"] <- GetTitan(victim)
     values["victim_x"] <- victimPos.x
     values["victim_y"] <- victimPos.y
@@ -107,7 +107,7 @@ void function killstat_Record(entity victim, entity attacker, var damageInfo) {
     HttpRequest request
     request.method = HttpRequestMethod.POST
     request.url = file.host + "/data"
-    request.headers = {Token = [file.token]}
+    request.headers = {token = [file.token]}
     request.body = EncodeJSON(values)
 
     void functionref( HttpRequestResponse ) onSuccess = void function ( HttpRequestResponse response )
@@ -196,7 +196,7 @@ void function nutone_verify(){
     HttpRequest request
     request.method = HttpRequestMethod.POST
     request.url = file.host + "/auth"
-    request.headers = {Token = [file.token]}
+    request.headers = {token = [file.token]}
     void functionref( HttpRequestResponse ) onSuccess = void function ( HttpRequestResponse response )
     {
         if(response.statusCode == 200){
