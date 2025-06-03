@@ -39,7 +39,8 @@ void function killstat_Init() {
     file.serverName = GetConVarString("ns_server_name")
     file.serverId = GetConVarString("nutone_server_id")
     if ( file.serverId == "" ) {
-        file.serverId = file.serverName
+        Log("You must set 'nutone_server_id' to send data!'")
+        return
     }
 
     //register to NUTONEAPI if default or invalid token

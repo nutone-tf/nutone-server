@@ -14,7 +14,8 @@
             "Name": "nutone_token",
             "DefaultValue": ""
         },
-        /// Fill this if you want to change server name while keeping its stats intact
+        //Required: set this to the ID of your server intended to be sent to the API
+        //Recommended: snake_case, for example: okudai_pvp
         {
             "Name": "nutone_server_id",
             "DefaultValue": ""
