@@ -16,6 +16,7 @@
             "DefaultValue": ""
         },
         //Required: set this to the ID of your server intended to be sent to the API
+        //Required: this value CANNOT contain strings longer than 30 characters, and must only contain the following: a-z, 0-9, - and _
         //Recommended: snake_case, for example: okudai_pvp
         {
             "Name": "nutone_server_id",

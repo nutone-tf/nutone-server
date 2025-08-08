@@ -36,6 +36,14 @@ void function killstat_Init() {
         Log("You must set 'nutone_server_id' to send data!'")
         return
     }
+    if ( file.serverId.len() > 30) {
+        Log("nutone_server_id cannot be longer than 30 characters!")
+        return
+    }
+    if (!regexp(@"^[a-z0-9\-_]+$").match(file.serverId)) {
+        Log("nutone_server_id does not match requirements!")
+        return
+    }
     AddCallback_GameStateEnter(eGameState.Playing, killstat_Begin)
     AddCallback_OnPlayerKilled(killstat_Record)
     AddCallback_GameStateEnter(eGameState.Postmatch, killstat_End)
