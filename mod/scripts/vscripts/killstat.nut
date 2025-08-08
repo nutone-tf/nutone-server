@@ -17,17 +17,11 @@ struct {
 
 string function sanitizePlayerName(string name) {
     
-
-    if (name.len() > 3 && name[0] == 40 && name.find(")") != null  && name[1] > 47 && name[1] < 58) {
-        string outputname = "";
-        array <string> parts = split(name, ")");
-        for (int i = 1; i < parts.len(); i++) {
-            outputname += parts[i];
-        }
-        // print(outputname);
-         return outputname;
+    var ex = regexp(@"\(\d*\)")
+    var result = ex.search(name)
+    if (result != null) {
+        return name.slice(result.end, name.len())
     }
-    // print(name);
     return name;
    
 }
