@@ -15,17 +15,6 @@ struct {
     string map
 } file
 
-string function sanitizePlayerName(string name) {
-    
-    var ex = regexp(@"\(\d*\)")
-    var result = ex.search(name)
-    if (result != null) {
-        return name.slice(result.end, name.len())
-    }
-    return name;
-   
-}
-
 void function killstat_Init() {
     file.host = GetConVarString("nutone_host")
     file.token = GetConVarString("nutone_token")
@@ -79,7 +68,7 @@ void function killstat_Record(entity victim, entity attacker, var damageInfo) {
     values["game_mode"] <- file.gameMode
     values["game_time"] <- Time()
     values["map"] <- file.map
-    values["attacker_name"] <- sanitizePlayerName(attacker.GetPlayerName())
+    values["attacker_name"] <- attacker.GetPlayerName()
     values["attacker_uid"] <- attacker.GetUID()
     values["attacker_weapon"] <- GetWeaponName(attacker.GetLatestPrimaryWeapon())
     values["attacker_titan"] <- GetTitan(attacker)
@@ -87,7 +76,7 @@ void function killstat_Record(entity victim, entity attacker, var damageInfo) {
     values["attacker_y"] <- attackerPos.y
     values["attacker_z"] <- attackerPos.z
 
-    values["victim_name"] <- sanitizePlayerName(victim.GetPlayerName())
+    values["victim_name"] <- victim.GetPlayerName()
     values["victim_uid"] <- victim.GetUID()
     values["victim_weapon"] <- GetWeaponName(victim.GetLatestPrimaryWeapon())
     values["victim_titan"] <- GetTitan(victim)
